@@ -1,0 +1,355 @@
+---
+title: "HPC ICL"
+author: "Harry Chown"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+# Introduction to the HPC (ICL)
+
+This is a beginners guide to the HPC at Imperial College London (ICL). Most of what is covered here can also be found in <https://icl-rcs-user-guide.readthedocs.io/en/latest/hpc/getting-started/>, however I have set this about in a more layman-styled format with examples to help guide you through it. I will be covering a handful of basic Bash commands, but I will not be going into too much detail on these. DataCamp offer great beginners tutorials for Bash which I'd recommend: <https://www.datacamp.com/courses/introduction-to-bash-scripting>.
+
+## Why use a HPC?
+
+High Performance Computing (HPC) enables researchers to run computational work that is data intensive, with large memory limits, or has to be run a lot of times (highly parallel). This means that we can run the same code across multiple files using a larger number of processors = it's faster!
+
+## How can I get access to the HPC?
+
+Gaining access is relatively simple and will require you to have an exisiting ICL account (i.e. username and password for your email). How to gain access depends on your status but for Post-docs, PhD and research postgraduates (MRes) you must contact your group leader or supervisor who can register you. More details are found here: <https://www.imperial.ac.uk/admin-services/ict/self-service/research-support/rcs/get-access/>.
+
+### Unified Access (Proxy)
+
+First, you will need to set up a proxy which enables you to connect to the HPC as if you are from an ICL IP address. To do this, you'll need to set up Zscaler. Details of this can be found here: <https://www.imperial.ac.uk/admin-services/ict/self-service/connect-communicate/remote-access/unified-access/>.
+
+Once you have Zscaler installed, you will need to activate it as outlined in the above website.
+
+### Command-Line Interface (CLI)
+
+To connect to the HPC you are going to need an appropriate command-line interface (CLI). This works best with Mac and Linux systems however a work around can be developed for Windows.
+
+#### Linux
+
+In the Application window type in Terminal and you should be able to find your CLI there. Make sure to pin it to an easily accessible location.
+
+#### Mac
+
+In the Launchpad window type in Terminal and you should be able to find your CLI there. Make sure to pin it to an easily accessible location.
+
+#### Windows
+
+You'll need to download and install an additional app that can be used to simulate a Linux environment. For this head to <https://ubuntu.com/desktop/wsl> and download + install the appropriate packages. Make sure to pin it to an easily accessible location.
+
+### Connecting to the HPC
+
+Now you're ready to connect to the HPC. Simply load up your Terminal and then type the following and hit enter. Make sure to replace ```your-username``` with your actual username i.e. ```hchown```.
+
+```
+ssh your-username@login.cx3.hpc.ic.ac.uk
+```
+
+You might be asked whether you want to accept/store a fingerprint, just type "yes" and enter. You will then be prompted for your password. When you type your password it will be invisible, this is for extra security so people can't see your password on the screen. When you've typed it in be sure to hit enter and then you're on!
+
+As you login to the system you'll notice output displaying the folders that you have access to, the amount of data in these folders and how much storage has been used. It's important to keep a note of this as you don't want to be maxing out the storage for yourself AND everyone else! Insufficient storage will result in people's scripts not being able to run as they can't use any of the storage space for their outputs. Be kind and use the HPC with the knowledge that your actions can impact others. At the same time, don't be afraid to make mistakes, most of the mistakes you make can be easily rectified.
+
+# Navigating the HPC
+
+Congratulations! You've managed to get onto the HPC...now what? Let's go through how the HPC is organised so that you can understand where your data, scripts, results and temporary data should be stored. Alongside this, I'll teach you basic Bash commands to help you navigate through the system.
+
+## The home directory (~)
+
+Each time that you login to the HPC you'll arrive in your home directory ```/rds/general/user/your-username/home``` which can also be called ```~``` (tilde). To see the contents of this directory (and any other) you can use the command ```ls``` - think of this as "**l**i**s**t contents". To show your current working directy you can use the command ```pwd``` - **p**rint **w**orking **d**irectory. 
+
+## Personal, shared and temporary spaces
+
+Your home directory is your personal space which is great for having a sandbox area where you can explore your research without impeding others. However, it is important to have your code, chosen intermediate data and final results in a place which accessible to the group. This will enable others to help you with your work and provide access if you're having difficulty to (this could be anywhere between going on a holiday to having your computer damaged). Eventually, we will be running lots of tools and pipelines so these tools will provide lots of output, which most of the time will be intermediate/temporary. Therefore, the HPC comes with a temporary space where we can store this data which gets automatically deleted after **30 days**.
+
+I've already introduced the personal space (```~```), so lets begin with the temporary space. Temporary space can be found in ```/rds/general/user/your-username/ephemeral``` . Now lets learn how we can access this space and move from the home directory to here. The command we will use is ```cd``` - **c**hange **d**irectory. This is going to be an important command to help you navigate the HPC. To access the temporary space (ephemeral), we simply write:
+```
+cd /rds/general/user/your-username/ephemeral
+```
+
+Alternatively, we could write:
+```
+cd ../ephemeral
+```
+
+Why? Well ```..``` stands for the next directory "up". As you can see from when we are in the home directory ```/rds/general/user/your-username/home```, if we go one directory up we enter ```your-username``` and from there we can enter ```ephemeral```. Lets have a look at the folder in ```your-username```. First, enter your ```your-username``` using ```cd```, then list the contents using ```ls```.
+```
+cd /rds/general/user/your-username/
+
+ls
+```
+
+You should then see at least three folders ```ephemeral```, ```home``` and ```projects```. Since we have now mentioned the ephemeral and home, I hope you can guess what projects will be...our shared space!
+
+If you enter projects now and look at the folders you will see how as a group we have organised our data. Folders follow the format of fisher-organism-data. For example, ```fisher-aspergillus-reference``` contains the reference data for *Aspergillus spp.*. In brief, the folders and data types are outlined below:
+
+**rawdata**
+
+* Raw data, usually sequencing runs
+
+**analysis**
+
+* Scripts and selected intermediate data
+
+**results**
+
+* Result data ready for further analysis/visualization
+
+Within each folder in projects you will find two folders ```live``` and ```ephemeral```. The ```live``` folder contains all of the relevant data. The ```ephemeral``` folder is a temporary directory specific to that project folder. Feel free to use this and/or your personal ephemeral, as mentioned previously. It is recommended that within each ```live``` folder you wish to use that you create a directory with your name and use this to store your data. To **m**a**k**e a **dir**ectory we use the command ```mkdir```. Like so:
+
+```
+mkdir /rds/general/user/your-username/projects/fisher-organism-data/live/your-name
+```
+Just to add here, sometimes we may wanted to create a "nested" directory (a directory within a directory, like ```live``` inside ```projects```). To do this, we can the ```-p``` flag to ```mkdir``` to make all **p**recusory directories.
+```
+mkdir -p ~/test/subtest
+```
+Also, when naming folders and files it is best to avoid using " " spaces as it can be harder to code. Hence, we heavily use hyphens "-" and underscores "_". 
+
+An extract couple of commands that would be beneficial here are ```mv``` - to **m**o**v**e or rename a file/folder - and ```cp``` - to **c**o**p**y a file/folder.
+
+# Introduction to file manipulation
+
+Now you have the basics of navigating the HPC, lets have a look at what we can do on the HPC. As the main interface to the HPC is a terminal it can be pretty hard to check the contents of your files and see whether or not you have generated the correct files. In order to achieve this and to help debug your code there are a few commands that can help you.
+
+In order to show you these commands it makes sense to show you how you can create basic files through the terminal that we can then analyse together. A simple way to create a small file is to use the ```echo``` command:
+```
+ls ~/../ephemeral
+echo "Test1" > test.tmp
+```
+This prints the phrase "Test1" and outputs it ">" to a file called "test.tmp". To see what is inside of "test.tmp" we can use the ```cat``` command:
+```
+cat test.tmp
+```
+Which should now display the contents of test.tmp. If we want to write over "test.tmp" we can perform ```echo``` again:
+```
+echo "TestA" > test.tmp
+```
+Check using ```cat``` that the changes have taken place. If we wanted to append to "test.tmp" we can perform ```echo``` again but change how we output the string ("TestB"):
+```
+echo "TestB" >> test.tmp
+```
+Check this again and you shall now see the two lines TestA and TestB. Alternatively, we can use ```nano``` to create new files or edit existing ones. For example, to create a new file we can use:
+```
+nano new-test.tmp
+```
+Then using the text editor we can then type a new file. Using the same command again on an existing file, we can edit it:
+```
+nano test.tmp
+```
+If we have a file containing multiple lines we can display the first N number of lines using ```head```. By default, ```head``` prints the first 10 lines:
+```
+head test.tmp
+```
+But, we can use the ```-n``` flag to select the number of lines to print. Therefore, to get the first line of the file we can use:
+```
+head -n1 test.tmp
+```
+To get the last N lines we can use ```tail```. To count the number of lines/characters we can use ```wc``` with the ```-l``` flag for **l**ines and the ```-c``` flag for **c**haracters:
+```
+wc -l test.tmp
+wc -c test.tmp
+```
+Count characters may give you a slightly incorrect number than what you expect. This is because there are hidden characters that enable the formatting of files which cannot be seen by the naked eye. Different operating systems can use different encoding for formatting, which means that copy-and-paste code from a Microsoft Word Document may not work in a Linux environment. To circumvent this, I recommend use a text editor like Sublime or MS VScode to write your scripts. I'll mention this a bit later in the tutorial.
+
+
+We can also combine commands together using pipes "|". For example, if I wanted to count the number of folders in my user directory. I can use ```ls``` to display the number of folder and combine this with ```wc``` to count them:
+```
+ls /rds/general/user/your-username | wc -l
+```
+Together, the commands outlined in this section will provide the backbone to your experience in the HPC.
+
+## Text editors
+
+Writing scripts directly on the HPC can be quite difficult and not very user-friendly. Therefore, I recommend downloading a text editor on your local machine that you can use to write scripts. I'd recommend Sublime (really simple) <https://www.sublimetext.com> or MS VScode (more advanced) <https://code.visualstudio.com>.
+
+## Transferring files to/from HPC
+
+If you are writing your scripts on your local machine, you will want to use the following to move **from local** to HPC:
+```
+scp your-file your-username@login.hpc.ic.ac.uk:your-directory-of-choice
+```
+If you want to download files **from HPC** to local:
+```
+scp your-username@login.hpc.ic.ac.uk:your-directory-of-choice/your-file local-directory
+```
+In each instances you will be prompted for a password which will remain hidden as you type it. Make sure to hit enter afterwards.
+
+# Conda and software management
+
+Bioinformatics usually requires the development and use of pipelines. Pipelines requires the dependency of several tools in order to function. For example, if a pipeline uses tools A, B and C, where the output from A feeds into B and the output of B feeds into C. If B stops working, C cannot function. This is especially the case if there are software updates and the functionality of the software changes. You may experience this yourself when you update an operating system on your phone or computer and find that a certain app does not work anymore. In order to resolve this, a software manager called Conda has been widely used in bioinformatics.
+
+Many tools that require dependencies generate a package environment on Conda. Here, you can install tools with ease and with all the required packages. You can search for software and packages on their website <https://anaconda.org>.
+
+Conda creates computing environments where we can install software, run software and then leave without interacting with other pieces of software to prevent conflicts. Enabling us to install many tools without fear that a particular tool requires a different version of a dependency which another tool we use requires.
+
+In the HPC, we first have to initialize Conda before we can access any environments. To do this we must run:
+```
+eval "$(~/anaconda3/bin/conda shell.bash hook)"
+```
+We can then create environments and install software at the same time into those environments. This example will create an environment called "fastqc" where we will install the software fastqc. If you visit the Conda website for fastqc, either type "conda fastqc" into your browser or visit <https://anaconda.org/channels/bioconda/packages/fastqc/overview>, it will display how to install the software. To note, this does not describe how to simulatenously create the environment too. In order to create an environment **and** install fastqc:
+```
+conda create -n fastqc bioconda::fastqc
+```
+It will ask if you want to install the dependencies (Y) and may take a few minutes to install. Once complete, you can enter that environment, run fastqc and leave, like so:
+```
+conda activate fastqc
+fastqc -h
+conda deactive
+```
+Alternatively, we could have created an environment, entered it, then installed fastqc (you do not need to repeat this):
+```
+conda create -n fastqc
+conda activate fastqc
+conda install bioconda::fastqc
+conda deactivate
+```
+If you try and use fastqc outside of the environment, you can see that it no longer works.
+
+# Job scripts
+
+Job scripts enable us to run the same tasks over and over again, in parallel and using large resources (time/memory). It is the bread and butter of HPC usage. Commonly, job scripts can take the form as an array whereby the same job is repeated. Therefore, my personal terminology is that the job script is the overarching form which describes the takes for each job in an array. Within each job, the HPC produces a temporary environment where it can work. This means that to interact with this environment we have to state the exact path names to the files and folders we want to interact with. Otherwise, they will be produced into the temporary space which is removed as soon as the job finishes. 
+
+When we submit our jobs we can track their progress. Importantly, we can also switch off our local PCs because the scripts are running on a HPC machine. This means that we can be more productive with our time and enable us to not burn out computers.
+
+## Writing your first job script
+
+Now that we've had a brief run down on the basics, lets focus our attention onto the main goal: writing scripts for parallel work. For now, we are going to work in your home directory, so move to there first. Here is an outline of example script that I want you to write in your home directory, then I'll talk you through it. You can call it example.job:
+
+```bash {.numberLines}
+#!/bin/bash
+#PBS -l walltime=00:02:00
+#PBS -l select=1:ncpus=2:mem=12gb
+#PBS -N zExample
+#PBS -J 1-3
+
+# 2 minutes, 2 threads, 12gb RAM
+# Iterate 3 times
+
+INPUT=$(sed -n "${PBS_ARRAY_INDEX}p" /rds/general/user/your-username/home/job-input.txt)
+OUTDIR="/rds/general/user/your-username/home/test-output"
+mkdir $OUTDIR
+
+echo "$INPUT"
+echo "$INPUT" > output.txt
+echo "$INPUT" > $OUTDIR/output.txt
+echo "$INPUT" >> $OUTDIR/output.append.txt
+echo "$INPUT" > $OUTDIR/$INPUT.txt
+```
+Line 1: Set language to Bash - this is called a shebang and is essential for every script that you run
+
+Line 2: Set the amount of time you want each job to run for. **Note:** this not the "array" but each individual job in the array. An array consists of multiple jobs. In this example, we have a job array of three jobs, with each job being able to run for a maximum of 12 hours. Time is set as hh:mm:ss
+
+Line 3: Set the number of cores/threads and RAM. In this example, we have 2 core/threads and 12gb. See the ICL guide for more information
+
+Setting lines 2 and 3 too high will delay the start time of your job as you'll be stuck in a queue (we'll mention this a bit later) as you need more resources. Take time to sandbox your scripts and work out how much time you will actually need
+
+Line 4: Set a name for the job, including output files
+
+Line 5: Establish the array. This makes a number from the range you provide so 1-3 makes 1, 2 and 3. Therefore, if I was to write "2-5" it would make 2, 3, 4 and 5.
+
+Line 10: Meaningful array
+
+Line 11: Set output folder
+
+Line 12: Make output folder
+
+Line 14: Print "INPUT" to job output file
+
+Line 15: Print "INPUT" to file "output.txt" which is stored in temporary job environment
+
+Line 16: Print "INPUT" to output file in output directory
+
+Line 17: Append "INPUT" to output file in output directory
+
+Line 18: Print "INPUT" to a unique output file in output directory
+
+Lets create the input file that we want the job script to read and then lets use this to run the job script and see what results we achieve. Create the following and store it in your home directory under the name of "job-input.txt":
+```
+testA
+testB
+testC
+```
+
+
+## Submitting your first job script
+
+To submit the job, we can use the ```qsub``` command, like so:
+```
+qsub example.job
+```
+Think of this as **sub**mitting to the **q**ueue. To track progress of the job, we can check the **q**ueue **stat**us:
+```
+qstat
+```
+What you will now see is a list of all the users and their jobs on the HPC. To select your own, we can use the command ```grep```:
+```
+qstat | grep your-username
+```
+The command ```grep``` is a handy tool to use so pocket this one for future reference!
+
+## Results from first job script
+
+You'll notice 6 files will have been generated upon completion of your first job script. They should take the form of zExample.eSomeNumbers.1-3. The files that have the prefix zExample.e are your error files and those with the prefix zExample.o are your output files. 
+
+All error files should be empty. If not, read these as they will guide you as to where your mistakes are. 
+
+In your output files, you should see that each output corresponds with the line number in the input file. As a result, the first line is the output from line number 14 in the job script. You will also see that the runtime and CPU usage is also displayed in the output file for each job.
+
+Inside the output directory (test-output), you should find 5 files. The first is ```output.append.txt``, here you'll notice that the input for each array has been added line-by-line. A cautionary note here: sometimes jobs can complete at the same time, causing the output to combine on the same line. Example: instead of "testA" followed by "testB", you may get a single line that merges the two "tetestBstA". 
+
+The second file is ```output.txt```. This is an example of a classic mistake when writing scripts, whereby we accidentally overwrite the results output. You can see in here that the only input is "testC", the last line to run in the job script. 
+
+The remaining files are your "gold-standard" for HPC use. An output file for each remaining input file testA-C. We can then combine these into a single file using basic Bash scripting:
+
+```
+cat test*.txt > results.txt
+```
+Here we read all of the files using ```cat``` that match the pattern ```test*.txt``` and output this (```>```) to our results file. This also introduces you to wildcards (```*```) and regular expressions (for more information: <https://www.rexegg.com/regex-quickstart.php>)
+
+# Concluding remarks
+
+Congratulations, you've survived making it through the introduction to the HPC! You may leave this feeling puzzled, filled with burning questions, eager to get started or quietly confident with your new skills. Either way, it'll take practice and experience to truly get a "feel" for how it all works.
+
+## Debugging
+
+When you get stuck (because you will at some point), try to follow this logic flow to help find a resolution:
+
+1. Read the error message
+  + This is important and often overlooked. What does the error message say? Can you figure it out from there?
+  + A lot of the time it may be a "file does not exist" error which likely means you've misspelt a file
+2. Check your input
+  + Is the correct file being read?
+  + Check the file paths
+3. Check your output
+  + What output do you produce, if any?
+  + Check the file paths
+4. Check your intermediate files
+  + Are they produces? Are they correct?
+  + Check the file paths
+5. Google the error message
+  + If you've experienced this problem, 99.9% of the time somebody else has too. StackOverflow is your friend
+6. Use ChatGPT/AI
+  + But, use it wisely! Remember AI just matches patterns, it does not know exactly what you are trying to do or the data you are working with
+7. Rewrite the script
+  + Write it from fresh, in a new text document and go through it line-by-line
+  + Check for typos (arguably the number 1 cause but we would hope you notice that at step 1)
+8. Speak to your supervisor/mentor for assistance
+  + I've kept this one to the end because steps 1-7 help you build independence and resilience
+  + Plus, they will be going through steps 1-7 themselves anyway
+
+
+
+If you've noticed any mistakes in this tutorial, please get in touch. You can find my details at: <https://harrychown.github.io>
